@@ -1,0 +1,17 @@
+.btn {
+    padding: 5px 15px;
+    color: cornflowerblue;
+    font-size: 14px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid cornflowerblue;
+}
+
+.btn-red {
+    padding: 5px 15px;
+    color: crimson;
+    font-size: 14px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid crimson;
+}
