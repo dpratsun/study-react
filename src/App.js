@@ -1,44 +1,49 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import './styles/App.css';
 import PostList from "./components/PostList";
 import PostForm from "./components/PostForm";
 import PostFilter from "./components/PostFilter";
+import Modal from "./components/ui/modal/Modal";
+import Button from "./components/ui/button/Button";
+import {usePosts} from "./hooks/usePosts";
+import axios from "axios";
 
 function App() {
-    const [posts, setPosts] = useState([
-        {id: 1, title: 'Javascript', body: 'Test text'},
-        {id: 2, title: 'Java', body: 'Test java'},
-    ]);
-
+    const [posts, setPosts] = useState([]);
     const [filter, setFilter] = useState({sort: '', search: ''});
+    const [modalVisible, setModalVisible] = useState(false);
 
-    const sortedPosts = useMemo(() => {
-        if (filter.sort) {
-            // sort mutates current array. state can not be mutated directly
-            return [...posts].sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]));
-        }
-        return posts;
-    }, [filter.sort, posts]);
+    const filteredAndSearchedPosts = usePosts(posts, filter.sort, filter.search);
 
-    const sortedAndSearchedPosts = useMemo(() => {
-        return sortedPosts.filter(p => p.title.toLowerCase().includes(filter.search.toLowerCase())
-                || p.body.toLowerCase().includes(filter.search.toLowerCase()));
-    }, [filter.search, sortedPosts]);
+    // hook triggered on Mount
+    useEffect(() => {
+        fetchPosts();
+    }, [])
 
     const createPost = (post) => {
         setPosts([...posts, post]);
+        setModalVisible(false);
     }
 
     const removePost = (post) => {
         setPosts(posts.filter(p => p.id !== post.id));
     }
 
+    async function fetchPosts() {
+        const response = await axios.get("https://jsonplaceholder.typicode.com/posts");
+        setPosts(response.data);
+    }
+
     return (
         <div className="App">
-            <PostForm create={createPost} posts={posts} setPosts={setPosts}/>
-            <hr style={{margin: '15px 0'}}/>
+            <Button style={{marginTop: 30}} onClick={() => setModalVisible(true)}>
+                Create Post
+            </Button>
+            <Modal visible={modalVisible} setVisible={setModalVisible}>
+                <PostForm create={createPost} posts={posts} setPosts={setPosts}/>
+            </Modal>
             <PostFilter filter={filter} setFilter={setFilter}/>
-            <PostList remove={removePost} posts={sortedAndSearchedPosts} title="Language List"/>
+            <PostList remove={removePost} posts={filteredAndSearchedPosts} title="Posts List"/>
         </div>
   );
 }

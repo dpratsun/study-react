@@ -1,9 +1,16 @@
 import React from 'react';
 import classes from "./Button.module.css";
 
-const Button = ({children, styleClass, onClick}) => {
+const Button = ({style, children, type, onClick}) => {
+
+    const btnClasses = [classes.btn];
+
+    if (type === 'delete') {
+        btnClasses.push(classes.red);
+    }
+
     return (
-        <button onClick={onClick} className={classes[styleClass]}>{children}</button>
+        <button style={style} onClick={onClick} className={btnClasses.join(' ')}>{children}</button>
     );
 };
 
