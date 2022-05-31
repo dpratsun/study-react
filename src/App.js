@@ -1,8 +1,8 @@
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import './styles/App.css';
 import PostList from "./components/PostList";
 import PostForm from "./components/PostForm";
-import Select from "./components/Select";
+import PostFilter from "./components/PostFilter";
 
 function App() {
     const [posts, setPosts] = useState([
@@ -10,7 +10,20 @@ function App() {
         {id: 2, title: 'Java', body: 'Test java'},
     ]);
 
-    const [selectedSort, setSelectedSort] = useState();
+    const [filter, setFilter] = useState({sort: '', search: ''});
+
+    const sortedPosts = useMemo(() => {
+        if (filter.sort) {
+            // sort mutates current array. state can not be mutated directly
+            return [...posts].sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]));
+        }
+        return posts;
+    }, [filter.sort, posts]);
+
+    const sortedAndSearchedPosts = useMemo(() => {
+        return sortedPosts.filter(p => p.title.toLowerCase().includes(filter.search.toLowerCase())
+                || p.body.toLowerCase().includes(filter.search.toLowerCase()));
+    }, [filter.search, sortedPosts]);
 
     const createPost = (post) => {
         setPosts([...posts, post]);
@@ -20,25 +33,12 @@ function App() {
         setPosts(posts.filter(p => p.id !== post.id));
     }
 
-    const sortPosts = (sort) => {
-        setSelectedSort(sort);
-        // sort mutates current array. state can not be mutated directly
-        setPosts([...posts].sort((a, b) => a[sort].localeCompare(b[sort])));
-        console.log(sort);
-    }
-
     return (
         <div className="App">
             <PostForm create={createPost} posts={posts} setPosts={setPosts}/>
             <hr style={{margin: '15px 0'}}/>
-            <div>
-                <Select
-                    value={selectedSort}
-                    onChange={sort => sortPosts(sort)}
-                    defaultValue="Sort By"
-                    options={[{value: 'title', name: 'Title'}, {value: 'body', name: 'Body'}]}/>
-            </div>
-            <PostList remove={removePost} posts={posts} title="Language List"/>
+            <PostFilter filter={filter} setFilter={setFilter}/>
+            <PostList remove={removePost} posts={sortedAndSearchedPosts} title="Language List"/>
         </div>
   );
 }
